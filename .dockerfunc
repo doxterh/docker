@@ -1,18 +1,42 @@
 jhipster() {
-	jhipster-container ${FUNCNAME}
+	docker rm jhipster
+	docker run -it \
+		--name jhipster \
+		-e HOME \
+		--rm \
+		--user $(id -u):$(id -g) \
+		-v $HOME:$HOME \
+		-w $(pwd) \
+		--entrypoint=jhipster \
+		jhipster:latest \
+		$@
 }
 
 yarn() {
-	jhipster-container ${FUNCNAME}
+	jhipster-container ${FUNCNAME} $@
 }
 
 jhipster-container()  {
+	docker rm jhipster
 	docker run -it \
 		--name jhipster \
-		-v $(pwd):/home/jhipster/app \
-		-p 8080:8080  \
-		-p 9000:9000 \
-		-p 3001:300 \
-		--entrypoint=$@ \
-		jhipster/jhipster:latest
+		-e HOME \
+		--rm \
+		--user $(id -u):$(id -g) \
+		-v $(pwd):$(pwd) \
+		-v $HOME:$HOME \
+		jhipster:latest \
+		$@
+}
+
+connect() {
+	docker run -it \
+		-e HOME \
+		--rm \
+		--user $(id -u):$(id -g) \
+		-p 8761:8761 \
+		-p 8080:8080 \
+		-v $HOME:$HOME \
+		-w $HOME \
+		jhipster
 }
