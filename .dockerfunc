@@ -1,4 +1,4 @@
-jhipster() {
+jhipsterjj() {
 	jhipster-container ${FUNCNAME}
 }
 
@@ -7,6 +7,7 @@ yarn() {
 }
 
 jhipster-container()  {
+	docker rm jhipster
 	docker run -it \
 		--name jhipster \
 		-v $(pwd):/home/jhipster/app \
@@ -15,4 +16,78 @@ jhipster-container()  {
 		-p 3001:300 \
 		--entrypoint=$@ \
 		jhipster/jhipster:latest
+}
+
+gitlab() {
+	sudo docker run --detach \
+    --hostname gitlab.example.com \
+    --publish 443:443 --publish 80:80 \
+    --name gitlab \
+    --restart always \
+    --volume /srv/gitlab/config:/etc/gitlab \
+    --volume /srv/gitlab/logs:/var/log/gitlab \
+    --volume /srv/gitlab/data:/var/opt/gitlab \
+    gitlab/gitlab-ce:latest
+}
+
+npm() {
+	docker run -it \
+	--entrypoint=npm \
+	node:9.2.0-alpine \
+	"$@" 
+}
+
+node() {
+	docker run -it \
+	--entrypoint=node \
+	node:9.2.0-alpine \
+	"$@" 
+}
+
+ng() {
+	docker run -it \
+	-v $PWD:$PWD \
+	-w $PWD \
+	--entrypoint=ng \
+	angular-cli:1.0.0-beta.28.3 \
+	$@
+}
+
+dcleanup()  {
+	docker rm $(docker ps -aq 2>/dev/null) 2>/dev/null
+	docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null
+	docker rmi -f $(docker images --filter dangling=true 2>/dev/null) 2>/dev/null
+	docker volume rm -f $(docker volume ls -qf dangling=true 2>/dev/null) 2>/dev/null
+}
+
+gitlab-runner() {
+	docker rm gitlab-runner
+	docker run -d \
+	--name gitlab-runner \
+	-v /srv/gitlab-runner/config:/etc/gitlab-runner \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	--restart always \
+	gitlab/gitlab-runner
+}
+
+visual-studio-code() {
+	xhost +local:docker
+
+	docker rm vscode
+
+	docker run -it \
+	-u $(id -u):998 \
+	-e DISPLAY \
+	-e SHELL \
+	-e HOME \
+	-v /etc/passwd:/etc/passwd:ro \
+	-v /tmp/.X11-unix:/tmp/.X11-unix \
+	-v /usr/bin/git:/usr/bin/git \
+	-v /usr/bin/docker:/usr/bin/docker \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-v $HOME:$HOME \
+	-w $HOME \
+	--privileged \
+	--name vscode \
+	vscode:latest
 }
